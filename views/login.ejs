@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>
+    Login Page
+  </title>
+  <link rel='stylesheet' href='/stylesheets/style.css' />
+</head>
+
+<body>
+  <div class="container">
+    <div class="content">
+      <!--pinterest logo-->
+      <img src="/images/uploads/pixnest.png" alt="pin logo"
+        class="img1" />
+      <p class="header">Login account to see more</p>
+
+      <% if(error.length > 0){ %>
+        <p class="error"><%= error %></p>
+        <% }  %>
+
+      <form action="/login" method="post"> 
+        <input type="text" name="username" placeholder="Username" class="detail" /><br />
+        <input type="password" name="password" placeholder="Password" class="detail" />
+        <input type="submit" class="btn int" value="Login my account">
+      </form>
+      <footer>
+        <p>
+          By continuing, you agree to pixnest's
+          <b>Terms of Service, Privacy policy.</b>
+        </p>
+        <hr />
+        <a href="/">Not on pixnest yet? Sign up</a>
+      </footer>
+    </div>
+  </div>
+
+</body>
+
+</html>

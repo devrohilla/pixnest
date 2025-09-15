@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,  initial-scale=1">
+    <title>Pixnest</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-SgOJa3DmI69IUzQ2PVdRZhwQ+dy64/BUtbMJw1MZ8t5HZApcHrRKUc4W0kG879m7" crossorigin="anonymous">
+    <link rel="stylesheet" href="/stylesheets/home.css">
+</head>
+
+<body>
+
+    <nav>
+        <div class="logo">
+            <img src="/images/uploads/pixnest.png" alt="pin logo" class="img1" />
+        </div>
+        <ul class="navLink">
+            <li><a href="#">About</a></li>
+            <li><a href="#">Contact</a></li>
+            <li><a href="#">Projects</a></li>
+        </ul>
+        <div class="lines">
+            <div class="l1"></div>
+            <div class="l2"></div>
+            <div class="l3"></div>
+        </div>
+    </nav>
+
+    <header>
+        <h1>Pixnest Style Image Galley</h1>
+        <!-- <h2>with Responsive Navigation Bar</h2> -->
+    </header>
+
+
+
+    <div class="container">
+        <div class="cards flex">
+            <% posts.forEach(function(post) { %>
+                <div class="card" style="width: 18rem;">
+                    <img src="/images/uploads/<%= post.image %>" class="card-img-top" alt="...">
+                    <div class="card-body">
+                        <%if(post.imageText){ %>
+                            <h5 class="card-title">
+                                <%=post.imageText%>
+                            </h5>
+                            <% } %>
+                    </div>
+                    <a href="/viewprofile/<%=post.user._id%>/<%= loggedinuser._id %>" class="post-user">
+                        <img src="/images/uploads/<%= post.user.image %>" alt="">
+                        @<%= post.user.username %>
+                    </a>
+                    </a>
+
+                </div>
+                <% }) %>
+        </div>
+    </div>
+
+    <footer class="bottom-nav">
+        <a href="/home/<%= loggedinuser._id %>" class="nav-btn">
+            <img src="https://imgs.search.brave.com/V7lp3CuUbGmLvV3dG-UME9cVjT2_GezlLXKBUj59txs/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9tYXJr/ZXRwbGFjZS5jYW52/YS5jb20veWRRanMv/TUFFSHNueWRRanMv/MS90bC9jYW52YS1o/b21lLWJ1dHRvbi1p/Y29uLU1BRUhzbnlk/UWpzLnBuZw"
+                alt="">
+        </a>
+        <a href="/profile" class="nav-btn">
+            <img src="/images/uploads/<%= loggedinuser.image %>" alt="PROFILE">
+        </a>
+    </footer>
+
+</body>
+
+</html>

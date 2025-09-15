@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,  initial-scale=1">
+    <title>Profile</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-SgOJa3DmI69IUzQ2PVdRZhwQ+dy64/BUtbMJw1MZ8t5HZApcHrRKUc4W0kG879m7" crossorigin="anonymous">
+    <link rel="stylesheet" href="stylesheets/profile.css">
+</head>
+
+<body>
+    <div class="main" style="padding-bottom: 60px;">
+    <div class="containerpers">
+        <div class="cardpers">
+            <div class="profile-picture">
+                <img src="/images/uploads/<%=user.image%>" alt="Profile Picture">
+            </div>
+            <h3 class="username">@<%= user.username%>
+            </h3>
+            <h2 class="name">
+                <%= user.fullname %>
+            </h2>
+            <p class="description">
+                <%=user.description %>
+            </p>
+
+            <a href="/edit" class="button">Edit profile</a>
+            <a href="/logout" class="button">Logout</a> 
+            <form action="/upload" method="post" enctype="multipart/form-data">
+                <label for="">Upload Post</label>
+                <input type="text" name="filecaption" placeholder="some caption" required>
+                <input type="file" name="file" required>
+                <button type="submit">Upload</button>
+            </form>
+        </div>
+    </div>
+    <div class="container">
+        <div class="cards flex">
+            <% user.posts.forEach(function(post) { %>
+                <div class="card" style="width: 18rem">
+                    <img src="/images/uploads/<%= post.image %>" class="card-img-top" alt="...">
+                    <div class="card-body">
+                       <%if(post.imageText){  %> 
+                            <h5 class="card-title">
+                            <%=post.imageText%>
+                        </h5>
+                       <% } %> 
+                        <form action="/delete/<%= post._id %>" method="post">
+                            <button type="submit" name="">delete</button>
+                        </form>
+                    </div>
+                </div>
+                <% }) %>
+        </div>
+    </div>
+    </div>
+<!-- 🔽 Bottom Navigation Bar -->
+  <footer class="bottom-nav" style="position: fixed">
+    <a href="/home/<%= user._id%>" class="nav-btn">
+        <img  src="https://imgs.search.brave.com/V7lp3CuUbGmLvV3dG-UME9cVjT2_GezlLXKBUj59txs/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9tYXJr/ZXRwbGFjZS5jYW52/YS5jb20veWRRanMv/TUFFSHNueWRRanMv/MS90bC9jYW52YS1o/b21lLWJ1dHRvbi1p/Y29uLU1BRUhzbnlk/UWpzLnBuZw" alt="">
+    </a>
+    <a href="/profile" class="nav-btn">
+        <img src="/images/uploads/<%= user.image %>" alt="">
+    </a>
+  </footer>
+</body>
+
+</html>

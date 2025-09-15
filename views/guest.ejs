@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,  initial-scale=1">
+    <title>Home Page</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-SgOJa3DmI69IUzQ2PVdRZhwQ+dy64/BUtbMJw1MZ8t5HZApcHrRKUc4W0kG879m7" crossorigin="anonymous">
+    <link rel="stylesheet" href="/stylesheets/home.css">
+</head>
+
+<body>
+    <div class="container">
+        <div class="cards flex">
+            <% posts.forEach(function(post) { %>
+                <div class="card" style="width: 18rem;">
+                    <img src="/images/uploads/<%= post.image %>" class="card-img-top" alt="...">
+                    <div class="card-body">
+                        <%if(post.imageText){ %>
+                            <h5 class="card-title">
+                                <%=post.imageText%>
+                            </h5>
+                            <% } %>
+                    </div>
+                    <a href="/register" class="post-user">
+                        <img src="/images/uploads/default.png" alt="">
+                        @<%= post.user.username %>
+                    </a>
+                        <a href="/images/uploads/<%= post.image %>" download>Download</a>
+                    </a>
+
+                </div>
+                <% }) %>
+        </div>
+    </div>
+
+    <footer class="bottom-nav">
+        <a href="/guest" class="nav-btn">
+            <img src="https://imgs.search.brave.com/V7lp3CuUbGmLvV3dG-UME9cVjT2_GezlLXKBUj59txs/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9tYXJr/ZXRwbGFjZS5jYW52/YS5jb20veWRRanMv/TUFFSHNueWRRanMv/MS90bC9jYW52YS1o/b21lLWJ1dHRvbi1p/Y29uLU1BRUhzbnlk/UWpzLnBuZw"
+                alt="">
+        </a>
+        <a href="/register" class="nav-btn">
+            <img src="/images/uploads/default.png" alt="PROFILE">
+        </a>
+    </footer>
+
+</body>
+
+</html>
