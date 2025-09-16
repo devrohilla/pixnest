@@ -12,46 +12,48 @@
 
 <body>
     <a href="/profile" class="back-link">← Back</a>
-<% if (typeof error !== "undefined" && error) { %>
-  <div class="alert alert-danger"><%= error %></div>
-<% } %>
-
-    <form action="/update/<%= user._id %>" method="post" enctype="multipart/form-data">
-        <h2>Edit Profile</h2>
-
-        <!-- Username -->
-        <div class="mb-3">
-            <label for="username" class="form-label">Username</label>
-            <input type="text" id="username" name="username" value="<%= user.username %>" class="form-control" required>
+    <% if (typeof error !=="undefined" && error) { %>
+        <div class="alert alert-danger">
+            <%= error %>
         </div>
+        <% } %>
 
-        <!-- Full Name -->
-        <div class="mb-3">
-            <label for="fullname" class="form-label">Full Name</label>
-            <input type="text" id="fullname" name="fullname" value="<%= user.fullname %>" class="form-control" required>
-        </div>
+            <form action="/update/<%= user._id %>" method="post" enctype="multipart/form-data">
+                <h2>Edit Profile</h2>
 
-        <!-- Bio -->
-        <div class="mb-3">
-            <label for="description" class="form-label">Bio</label>
-  <textarea name="description"><%= user.description %></textarea>
-        </div>
+                <!-- Username -->
+                <div class="mb-3">
+                    <label for="username" class="form-label">Username</label>
+                    <input type="text" id="username" name="username" value="<%= user.username %>" class="form-control"
+                        required>
+                </div>
 
-        <!-- Profile Picture -->
-        <div class="mb-3">
-            <div class="d-flex justify-content-between align-items-center">
-                <label for="image" class="form-label mb-0">Profile Picture</label>
-                <form action="/remove/<%= user._id %>" method="post" style="display:inline;">
-                    <button type="submit" class="btn btn-sm btn-danger">Remove</button>
-                </form>
-            </div>
-            <input type="file" name="image" id="image" class="form-control mt-2"><br>
-               <!-- Save Button -->
-        <button type="submit" class="btn btn-primary">Save</button>
-        </div>
+                <!-- Full Name -->
+                <div class="mb-3">
+                    <label for="fullname" class="form-label">Full Name</label>
+                    <input type="text" id="fullname" name="fullname" value="<%= user.fullname %>" class="form-control"
+                        required>
+                </div>
 
-     
-    </form>
+                <!-- Bio -->
+                <div class="mb-3">
+                    <label for="description" class="form-label">Bio</label>
+                    <textarea name="description" required><%= user.description %></textarea>
+                </div>
+
+                <!-- Profile Picture -->
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <label for="image" class="form-label mb-0">Profile Picture</label>
+                        <a href="/remove/<%= user._id %>" class="btn btn-sm btn-danger">Remove</a>
+                    </div>
+                    <input type="file" name="image" id="image" class="form-control mt-2"><br>
+                    <!-- Save Button -->
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </div>
+
+
+            </form>
 </body>
 
 

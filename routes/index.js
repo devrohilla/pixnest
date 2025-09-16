@@ -107,7 +107,7 @@ router.post('/delete/:id', async (req, res) => {
   res.redirect('/profile')
 })
 
-router.post('/remove/:id', async (req, res) => {
+router.get('/remove/:id', async (req, res) => {
   let user = await userModel.findOneAndUpdate(
     { _id: req.params.id },    // filter
     { image: "default.png" },
