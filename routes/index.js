@@ -1,34 +1,37 @@
 var express = require('express');
 var router = express.Router();
-const userModel = require("./users");
-const postModel = require("./posts");
+const userModel = require("../models/User"); // ../ kyunki routes folder ke liye
+const postModel = require("../models/Post");
 const passport = require('passport');
-const upload = require("./multer");
+const upload = require("./multer");      // multer.js setup
 
 const localStrategy = require("passport-local");
 passport.use(new localStrategy(userModel.authenticate()));
 
-/* GET home page. */
+/* GET home page */
 router.get('/', function (req, res, next) {
   res.render('index', { title: 'Express' });
 });
 
-router.get('/viewprofile/:id/:myid',async (req,res)=>{ 
-  let user=await userModel.findOne({_id:req.params.id}).populate('posts')
-  let loggedinuser=await userModel.findById({_id:req.params.myid})
-  res.render('viewprofile',{user,loggedinuser})
-})
+// 🔹 View profile
+router.get('/viewprofile/:id/:myid', async (req, res) => {
+  let user = await userModel.findOne({ _id: req.params.id }).populate('posts');
+  let loggedinuser = await userModel.findById({ _id: req.params.myid });
+  res.render('viewprofile', { user, loggedinuser });
+});
 
-router.get("/login", function (req, res, next) {
+// 🔹 Login page
+router.get("/login", function (req, res) {
   res.render('login', { error: req.flash('error') });
-})
-router.get("/feed", function (req, res, next) {
+});
+
+// 🔹 Feed page
+router.get("/feed", function (req, res) {
   res.render('feed');
-})
+});
 
-//const upload = require('./multerSetup');
-
-router.post('/upload', isLoggedIn, upload.single('file'), async function (req, res, next) {
+// 🔹 Upload post
+router.post('/upload', isLoggedIn, upload.single('file'), async function (req, res) {
   if (!req.file) {
     return res.status(404).send("no files were given");
   }
@@ -40,26 +43,28 @@ router.post('/upload', isLoggedIn, upload.single('file'), async function (req, r
   });
 
   user.posts.push(post._id);
-  await user.save()
+  await user.save();
   res.redirect("/profile");
+});
 
-})
-
+// 🔹 Home page with posts
 router.get("/home/:id", async (req, res) => {
-  let posts = await postModel.find({}).populate("user")
+  let posts = await postModel.find({}).populate("user");
   let loggedinuser = await userModel.findById(req.params.id);
-  res.render('home', { posts ,loggedinuser})
-})
+  res.render('home', { posts, loggedinuser });
+});
 
-router.get("/profile", isLoggedIn, async function (req, res, next) {
+// 🔹 Profile page
+router.get("/profile", isLoggedIn, async function (req, res) {
   const user = await userModel.findOne({
     username: req.session.passport.user
-  })
-    .populate("posts")
-  res.render("profile", { user });
-})
+  }).populate("posts");
 
-router.get("/edit", isLoggedIn, async function (req, res, next) {
+  res.render("profile", { user });
+});
+
+// 🔹 Edit profile page
+router.get("/edit", isLoggedIn, async function (req, res) {
   const user = await userModel.findOne({
     username: req.session.passport.user
   }).populate("posts");
@@ -67,14 +72,15 @@ router.get("/edit", isLoggedIn, async function (req, res, next) {
   res.render("edit", { user, error: null });
 });
 
+// 🔹 Update profile
 router.post('/update/:id', upload.single('image'), async (req, res) => {
   try {
     let { username, fullname, description } = req.body;
 
-    // Check duplicate username (except current user)
+    // Check duplicate username
     const existingUser = await userModel.findOne({ username: username });
     if (existingUser && existingUser._id.toString() !== req.params.id) {
-      const user = await userModel.findById(req.params.id); // 👈 user bhi bhejna padega
+      const user = await userModel.findById(req.params.id);
       return res.render("edit", { user, error: "Username already exists" });
     }
 
@@ -85,14 +91,12 @@ router.post('/update/:id', upload.single('image'), async (req, res) => {
       { new: true }
     );
 
-    // Agar nayi image upload ki gayi ho
     if (req.file) {
       user.image = req.file.filename;
       await user.save();
     }
 
     res.redirect('/profile');
-
   } catch (err) {
     console.log(err);
     const user = await userModel.findById(req.params.id);
@@ -100,28 +104,27 @@ router.post('/update/:id', upload.single('image'), async (req, res) => {
   }
 });
 
+// 🔹 Delete post
 router.post('/delete/:id', async (req, res) => {
-  let post = await postModel.findOneAndDelete(
-    { _id: req.params.id }    // filter
-  )
-  res.redirect('/profile')
-})
+  await postModel.findOneAndDelete({ _id: req.params.id });
+  res.redirect('/profile');
+});
 
+// 🔹 Remove DP
 router.get('/remove/:id', async (req, res) => {
-  let user = await userModel.findOneAndUpdate(
-    { _id: req.params.id },    // filter
+  await userModel.findOneAndUpdate(
+    { _id: req.params.id },
     { image: "default.png" },
     { new: true }
-  )
-  res.redirect('/edit')
-})
+  );
+  res.redirect('/edit');
+});
 
-
+// 🔹 Register
 router.post("/register", async function (req, res) {
   try {
     const { username, email, fullname, password } = req.body;
 
-    // Check if username or email already exists
     const existingUser = await userModel.findOne({
       $or: [{ username }, { email }]
     });
@@ -148,14 +151,14 @@ router.post("/register", async function (req, res) {
   }
 });
 
-
+// 🔹 Login POST
 router.post("/login", passport.authenticate("local", {
   successRedirect: "/profile",
   failureRedirect: "/login",
   failureFlash: true
-}), function (req, res) {
-})
+}));
 
+// 🔹 Logout
 router.get('/logout', function (req, res, next) {
   req.logout(function (err) {
     if (err) { return next(err); }
@@ -163,12 +166,13 @@ router.get('/logout', function (req, res, next) {
   });
 });
 
-router.get("/guest",async (req,res)=>{
-    let posts = await postModel.find({}).populate("user")
+// 🔹 Guest view
+router.get("/guest", async (req, res) => {
+  let posts = await postModel.find({}).populate("user");
+  res.render("guest", { posts });
+});
 
-  res.render("guest",{posts})
-})
-
+// Middleware
 function isLoggedIn(req, res, next) {
   if (req.isAuthenticated()) return next();
   res.redirect("/login");
