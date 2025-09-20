@@ -4,6 +4,7 @@ const userModel = require("../models/user"); // ../ kyunki routes folder ke liye
 const postModel = require("../models/post");
 const passport = require('passport');
 const upload = require("../config/multer");      // multer.js setup
+const cloudinary = require('cloudinary').v2;
 
 const localStrategy = require("passport-local");
 passport.use(new localStrategy(userModel.authenticate()));
@@ -31,26 +32,31 @@ router.get("/feed", function (req, res) {
 });
 
 // 🔹 Upload post
-router.post('/upload', isLoggedIn, upload.single('file'), async function (req, res) {
-  if (!req.file) {
-    return res.status(404).send("No file was uploaded");
+router.post('/upload', isLoggedIn, upload.single('file'), async (req, res) => {
+  try {
+    if (!req.file) return res.status(404).send("No file was uploaded");
+
+    // Find logged-in user
+    const user = await userModel.findOne({ username: req.session.passport.user });
+    if (!user) return res.status(401).send("User not found");
+
+    // Upload file to Cloudinary
+    const result = await cloudinary.uploader.upload(req.file.path, {
+      folder: 'your-folder-name', // optional: organize uploads in a folder
+    });
+
+    // Save post with Cloudinary URL
+    const post = await postModel.create({
+      image: result.secure_url,   // ✅ Cloudinary URL
+      imageText: req.body.filecaption,
+      user: user._id
+    });
+
+    res.status(201).json(post);
+  } catch (err) {
+    console.error("Upload error:", err);
+    res.status(500).send("Internal Server Error");
   }
-
-  // Logged in user
-  const user = await userModel.findOne({ username: req.session.passport.user });
-
-  // Create post with Cloudinary file URL
-  const post = await postModel.create({
-    image: req.file.path,       // 🔹 Cloudinary URL, pehle filename tha
-    imageText: req.body.filecaption,
-    user: user._id
-  });
-
-  // Add post to user's posts array
-  user.posts.push(post._id);
-  await user.save();
-
-  res.redirect("/profile");
 });
 
 
