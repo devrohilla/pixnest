@@ -3,7 +3,7 @@ var router = express.Router();
 const userModel = require("../models/user"); // ../ kyunki routes folder ke liye
 const postModel = require("../models/post");
 const passport = require('passport');
-const upload = require("./multer");      // multer.js setup
+const upload = require("../config/multer");      // multer.js setup
 
 const localStrategy = require("passport-local");
 passport.use(new localStrategy(userModel.authenticate()));
@@ -33,19 +33,26 @@ router.get("/feed", function (req, res) {
 // 🔹 Upload post
 router.post('/upload', isLoggedIn, upload.single('file'), async function (req, res) {
   if (!req.file) {
-    return res.status(404).send("no files were given");
+    return res.status(404).send("No file was uploaded");
   }
+
+  // Logged in user
   const user = await userModel.findOne({ username: req.session.passport.user });
+
+  // Create post with Cloudinary file URL
   const post = await postModel.create({
-    image: req.file.filename,
+    image: req.file.path,       // 🔹 Cloudinary URL, pehle filename tha
     imageText: req.body.filecaption,
     user: user._id
   });
 
+  // Add post to user's posts array
   user.posts.push(post._id);
   await user.save();
+
   res.redirect("/profile");
 });
+
 
 // 🔹 Home page with posts
 router.get("/home/:id", async (req, res) => {
@@ -92,7 +99,7 @@ router.post('/update/:id', upload.single('image'), async (req, res) => {
     );
 
     if (req.file) {
-      user.image = req.file.filename;
+      user.image = req.file.path;
       await user.save();
     }
 

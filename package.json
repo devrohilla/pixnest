@@ -5,10 +5,11 @@
   "scripts": {
     "start": "node ./bin/www"
   },
-    "engines": {
+  "engines": {
     "node": "20.x"
-    },
+  },
   "dependencies": {
+    "cloudinary": "^2.7.0",
     "connect-flash": "^0.1.1",
     "cookie-parser": "~1.4.4",
     "debug": "~2.6.9",
