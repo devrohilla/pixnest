@@ -1,7 +1,7 @@
 var express = require('express');
 var router = express.Router();
-const userModel = require("../models/User"); // ../ kyunki routes folder ke liye
-const postModel = require("../models/Post");
+const userModel = require("../models/user"); // ../ kyunki routes folder ke liye
+const postModel = require("../models/post");
 const passport = require('passport');
 const upload = require("./multer");      // multer.js setup
 

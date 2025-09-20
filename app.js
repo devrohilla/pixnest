@@ -20,7 +20,7 @@ mongoose.connect(process.env.MONGO_URI || "mongodb://127.0.0.1:27017/nayaaap", {
 // Routes
 var indexRouter = require('./routes/index');
 
-const User = require('./models/User');
+const User = require('./models/user');
 
 var app = express();
 
