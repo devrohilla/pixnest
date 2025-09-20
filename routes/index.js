@@ -1,13 +1,19 @@
 var express = require('express');
 var router = express.Router();
-const userModel = require("../models/user"); // ../ kyunki routes folder ke liye
+const userModel = require("../models/user");
 const postModel = require("../models/post");
 const passport = require('passport');
-const upload = require("../config/multer");      // multer.js setup
 const cloudinary = require('cloudinary').v2;
-
+const multer = require('multer');
+const streamifier = require('streamifier');
 const localStrategy = require("passport-local");
+
+// Configure Passport
 passport.use(new localStrategy(userModel.authenticate()));
+
+// Multer memory storage for serverless
+const storage = multer.memoryStorage();
+const upload = multer({ storage });
 
 /* GET home page */
 router.get('/', function (req, res, next) {
@@ -16,8 +22,8 @@ router.get('/', function (req, res, next) {
 
 // 🔹 View profile
 router.get('/viewprofile/:id/:myid', async (req, res) => {
-  let user = await userModel.findOne({ _id: req.params.id }).populate('posts');
-  let loggedinuser = await userModel.findById({ _id: req.params.myid });
+  const user = await userModel.findOne({ _id: req.params.id }).populate('posts');
+  const loggedinuser = await userModel.findById(req.params.myid);
   res.render('viewprofile', { user, loggedinuser });
 });
 
@@ -31,23 +37,33 @@ router.get("/feed", function (req, res) {
   res.render('feed');
 });
 
-// 🔹 Upload post
+// 🔹 Upload post (Vercel compatible)
 router.post('/upload', isLoggedIn, upload.single('file'), async (req, res) => {
   try {
-    if (!req.file) return res.status(404).send("No file was uploaded");
+    if (!req.file) return res.status(400).send("No file was uploaded");
 
-    // Find logged-in user
     const user = await userModel.findOne({ username: req.session.passport.user });
     if (!user) return res.status(401).send("User not found");
 
-    // Upload file to Cloudinary
-    const result = await cloudinary.uploader.upload(req.file.path, {
-      folder: 'your-folder-name', // optional: organize uploads in a folder
-    });
+    // Upload buffer to Cloudinary
+    const streamUpload = (buffer) => {
+      return new Promise((resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream(
+          { folder: 'your-folder-name' },
+          (error, result) => {
+            if (result) resolve(result);
+            else reject(error);
+          }
+        );
+        streamifier.createReadStream(buffer).pipe(stream);
+      });
+    };
 
-    // Save post with Cloudinary URL
+    const result = await streamUpload(req.file.buffer);
+
+    // Save post in DB
     const post = await postModel.create({
-      image: result.secure_url,   // ✅ Cloudinary URL
+      image: result.secure_url,
       imageText: req.body.filecaption,
       user: user._id
     });
@@ -59,45 +75,37 @@ router.post('/upload', isLoggedIn, upload.single('file'), async (req, res) => {
   }
 });
 
-
 // 🔹 Home page with posts
 router.get("/home/:id", async (req, res) => {
-  let posts = await postModel.find({}).populate("user");
-  let loggedinuser = await userModel.findById(req.params.id);
+  const posts = await postModel.find({}).populate("user");
+  const loggedinuser = await userModel.findById(req.params.id);
   res.render('home', { posts, loggedinuser });
 });
 
 // 🔹 Profile page
 router.get("/profile", isLoggedIn, async function (req, res) {
-  const user = await userModel.findOne({
-    username: req.session.passport.user
-  }).populate("posts");
-
+  const user = await userModel.findOne({ username: req.session.passport.user }).populate("posts");
   res.render("profile", { user });
 });
 
 // 🔹 Edit profile page
 router.get("/edit", isLoggedIn, async function (req, res) {
-  const user = await userModel.findOne({
-    username: req.session.passport.user
-  }).populate("posts");
-
+  const user = await userModel.findOne({ username: req.session.passport.user }).populate("posts");
   res.render("edit", { user, error: null });
 });
 
-// 🔹 Update profile
+// 🔹 Update profile (Vercel compatible image upload)
 router.post('/update/:id', upload.single('image'), async (req, res) => {
   try {
     let { username, fullname, description } = req.body;
 
     // Check duplicate username
-    const existingUser = await userModel.findOne({ username: username });
+    const existingUser = await userModel.findOne({ username });
     if (existingUser && existingUser._id.toString() !== req.params.id) {
       const user = await userModel.findById(req.params.id);
       return res.render("edit", { user, error: "Username already exists" });
     }
 
-    // Update user
     let user = await userModel.findByIdAndUpdate(
       req.params.id,
       { username, fullname, description },
@@ -105,7 +113,21 @@ router.post('/update/:id', upload.single('image'), async (req, res) => {
     );
 
     if (req.file) {
-      user.image = req.file.path;
+      // Upload new DP to Cloudinary
+      const streamUpload = (buffer) => {
+        return new Promise((resolve, reject) => {
+          const stream = cloudinary.uploader.upload_stream(
+            { folder: 'profile-images' },
+            (error, result) => {
+              if (result) resolve(result);
+              else reject(error);
+            }
+          );
+          streamifier.createReadStream(buffer).pipe(stream);
+        });
+      };
+      const result = await streamUpload(req.file.buffer);
+      user.image = result.secure_url;
       await user.save();
     }
 
@@ -143,10 +165,7 @@ router.post("/register", async function (req, res) {
     });
 
     if (existingUser) {
-      return res.render("index", { 
-        title: "Register",
-        error: "Username or Email already exists!" 
-      });
+      return res.render("index", { title: "Register", error: "Username or Email already exists!" });
     }
 
     const userData = new userModel({ username, email, fullname });
@@ -157,10 +176,7 @@ router.post("/register", async function (req, res) {
     });
   } catch (err) {
     console.log(err);
-    res.render("index", { 
-      title: "Register",
-      error: "Something went wrong, please try again." 
-    });
+    res.render("index", { title: "Register", error: "Something went wrong, please try again." });
   }
 });
 
@@ -181,7 +197,7 @@ router.get('/logout', function (req, res, next) {
 
 // 🔹 Guest view
 router.get("/guest", async (req, res) => {
-  let posts = await postModel.find({}).populate("user");
+  const posts = await postModel.find({}).populate("user");
   res.render("guest", { posts });
 });
 
